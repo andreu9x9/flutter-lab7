@@ -1,39 +1,51 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ShapeLabApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ShapeLabApp extends StatelessWidget {
+  const ShapeLabApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF141619),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E2126),
+          centerTitle: true,
+          elevation: 0,
+        ),
+        sliderTheme: const SliderThemeData(
+          activeTrackColor: Colors.redAccent,
+          thumbColor: Colors.red,
+          inactiveTrackColor: Colors.white24,
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const RedBoxConfigurator(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class RedBoxConfigurator extends StatefulWidget {
+  const RedBoxConfigurator({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<RedBoxConfigurator> createState() => _RedBoxConfiguratorState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _RedBoxConfiguratorState extends State<RedBoxConfigurator> {
+  double _boxWidth = 110.0;
+  double _boxHeight = 110.0;
+  double _topRightRadius = 40.0;
 
-  void _incrementCounter() {
+  void _resetDefaults() {
     setState(() {
-      _counter++;
+      _boxWidth = 110.0;
+      _boxHeight = 110.0;
+      _topRightRadius = 40.0;
     });
   }
 
@@ -41,26 +53,117 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: const Text('Конфігуратор контейнера'),
+        actions: [
+          IconButton(
+            onPressed: _resetDefaults,
+            tooltip: 'Скинути параметри',
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: .center,
           children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E2126),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Column(
+                children: [
+                  _controlRow(
+                    title: 'Ширина',
+                    currentValue: _boxWidth,
+                    min: 20,
+                    max: 240,
+                    onChanged: (v) => setState(() => _boxWidth = v),
+                  ),
+                  const SizedBox(height: 8),
+                  _controlRow(
+                    title: 'Висота',
+                    currentValue: _boxHeight,
+                    min: 20,
+                    max: 240,
+                    onChanged: (v) => setState(() => _boxHeight = v),
+                  ),
+                  const SizedBox(height: 8),
+                  _controlRow(
+                    title: 'Радіус верхнього правого кута',
+                    currentValue: _topRightRadius,
+                    min: 0,
+                    max: 150,
+                    onChanged: (v) => setState(() => _topRightRadius = v),
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: Center(
+                child: Container(
+                  width: _boxWidth,
+                  height: _boxHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(_topRightRadius),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E2126),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_boxWidth.toInt()} × ${_boxHeight.toInt()} px  |  R: ${_topRightRadius.toInt()}',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    );
+  }
+
+  Widget _controlRow({
+    required String title,
+    required double currentValue,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: const TextStyle(color: Colors.white70)),
+            Text(
+              '${currentValue.toStringAsFixed(1)} px',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: currentValue,
+          min: min,
+          max: max,
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }
